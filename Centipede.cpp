@@ -26,19 +26,19 @@ int main()
         // draw everything here...
 
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && player.getPosition().x >= 0)
         {
             player.move(-1, 0);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && player.getPosition().x <= 770)
         {
             player.move(1, 0);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player.getPosition().y >= 450)
         {
             player.move(0, -1);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && player.getPosition().y <= 570)
         {
             player.move(0, 1);
         }
