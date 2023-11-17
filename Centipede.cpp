@@ -10,19 +10,37 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode(resolutionX, resolutionY), "Centipede");
 
-    sf::RectangleShape player(sf::Vector2f(30, 30));
-    player.setFillColor(sf::Color::Red);
-    player.setPosition(385, 570);
 
-
+    // Background
     sf::Texture backgroundTexture;
     if(!backgroundTexture.loadFromFile("background.png")) {
-        cerr << "Error in loading file. Terminating...\n";
+        cerr << "Error in loading background file. Terminating...\n";
         return -1;
     }
     sf::Sprite backgroundSprite;
     backgroundSprite.setTexture(backgroundTexture);
-    
+
+    //Player
+    sf::Texture playerTexture;
+    if(!playerTexture.loadFromFile("player.png"))
+    {
+        cerr << "Error in loading player file. Terminating...\n";
+        return -1;
+    }
+    sf::Sprite playerSprite;
+    playerSprite.setTexture(playerTexture);
+    playerSprite.setPosition(resolutionX/2 - playerTexture.getSize().x, resolutionY - playerTexture.getSize().y);
+
+    //Bullet Creation
+    sf::Texture bulletTexture;
+    if(!bulletTexture.loadFromFile("bullet.png"))
+    {
+        cerr << "Error in loading bullet file. Terminating...\n";
+        return -1;
+    }
+    sf::Sprite bulletSprite;
+    bulletSprite.setTexture(bulletTexture);
+    bulletSprite.setPosition(450, 450);
 
     while (window.isOpen())
     {
@@ -40,23 +58,24 @@ int main()
         // draw everything here...
 
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && player.getPosition().x > 0)
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && playerSprite.getPosition().x > 0)
         {
-            player.move(-1, 0);
+            playerSprite.move(-1, 0);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && player.getPosition().x < resolutionX - player.getSize().x)
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && playerSprite.getPosition().x < resolutionX - playerSprite.getTexture()->getSize().x)
         {
-            player.move(1, 0);
+            playerSprite.move(1, 0);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player.getPosition().y > 450)
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && playerSprite.getPosition().y > 800)
         {
-            player.move(0, -1);
+            playerSprite.move(0, -1);
         }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && player.getPosition().y < resolutionY - player.getSize().y)
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && playerSprite.getPosition().y < resolutionY - playerSprite.getTexture()->getSize().y)
         {
-            player.move(0, 1);
+            playerSprite.move(0, 1);
         }
-        window.draw(player);
+        window.draw(playerSprite);
+        window.draw(bulletSprite);
 
         
 
