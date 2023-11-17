@@ -7,6 +7,7 @@ using namespace std;
 
 const int resolutionX = 960;
 const int resolutionY = 960;
+const int mushroom_size = 32;
 
 bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
 {
@@ -73,8 +74,15 @@ int main()
     float bullet_speed = 1;
 
     //Mushroom Creation
-    sf::RectangleShape mushroom(sf::Vector2f(32, 32));
-    mushroom.setFillColor(sf::Color::Red);
+    sf::Texture mushroomTexture;
+    if(!mushroomTexture.loadFromFile("mushroom.png"))
+    {
+        cerr << "Error in loading mushroom file. Terminating...\n";
+        return -1;
+    }
+    sf::Sprite mushroom;
+    mushroom.setTexture(mushroomTexture);
+    mushroom.setTextureRect(sf::IntRect(0, 0, mushroom_size, mushroom_size));
     mushroom.setPosition((rand() % resolutionX + 1), (rand() % resolutionY + 1));
     bool mushroom_visible = true;
     int mushroom_hits = 0;
@@ -131,12 +139,13 @@ int main()
         if(bullet_visible)
         {   
             window.draw(bulletSprite);
-            bulletSprite.setPosition(playerSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
+            bulletSprite.setPosition(bulletSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
             if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
             {
                 bullet_visible = false;
             }
-            if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x, bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, mushroom.getSize().x, mushroom.getSize().y))
+            if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x,
+                 bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, mushroom_size, mushroom_size))
             {
                 
                 cout << "Boom\n";
