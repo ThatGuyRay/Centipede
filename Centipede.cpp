@@ -77,6 +77,7 @@ int main()
     mushroom.setFillColor(sf::Color::Red);
     mushroom.setPosition((rand() % resolutionX + 1), (rand() % resolutionY + 1));
     bool mushroom_visible = true;
+    int mushroom_hits = 0;
 
     //Score
     int score = 0;
@@ -140,9 +141,13 @@ int main()
                 
                 cout << "Boom\n";
                 bullet_visible = false;
-                mushroom_visible = false;
-                score++;
-                cout << "Score = " << score << "\n";
+                mushroom_hits++;
+                if(mushroom_hits == 2)
+                {
+                    mushroom_visible = false;
+                    score++;
+                    cout << "Score = " << score << "\n";
+                }
 
             }
         }
