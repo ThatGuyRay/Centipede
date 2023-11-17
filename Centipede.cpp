@@ -40,7 +40,10 @@ int main()
     }
     sf::Sprite bulletSprite;
     bulletSprite.setTexture(bulletTexture);
-    bulletSprite.setPosition(450, 450);
+    bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
+    bool bullet_visible = false;
+
+
 
     while (window.isOpen())
     {
@@ -75,7 +78,16 @@ int main()
             playerSprite.move(0, 1);
         }
         window.draw(playerSprite);
-        window.draw(bulletSprite);
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
+        {
+            bullet_visible = true;
+        }
+
+        if(bullet_visible)
+        {   
+            window.draw(bulletSprite);
+        }
 
         
 
