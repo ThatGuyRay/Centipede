@@ -42,6 +42,7 @@ int main()
     bulletSprite.setTexture(bulletTexture);
     bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
     bool bullet_visible = false;
+    float bullet_speed = 1;
 
 
 
@@ -81,15 +82,19 @@ int main()
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
         {
+            bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
             bullet_visible = true;
         }
 
         if(bullet_visible)
         {   
             window.draw(bulletSprite);
+            bulletSprite.setPosition(playerSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
+            if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
+            {
+                bullet_visible = false;
+            }
         }
-
-        
 
         // end the current frame
         window.display();
