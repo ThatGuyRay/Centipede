@@ -5,12 +5,36 @@
 #include <SFML/Graphics.hpp>
 using namespace std;
 
-
 const int resolutionX = 960;
 const int resolutionY = 960;
 
+bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
+{
+    // Calculate the right and bottom coordinates for each rectangle
+    int first_right = x1 + w1;
+    int first_bottom = y1 + h1;
+
+    int second_right = x2 + w2;
+    int second_bottom = y2 + h2;
+
+    // If one rectangle is on left side of other
+    if (first_right <= x2 || second_right <= x1) {
+        return false;
+    }
+
+    // If one rectangle is above other
+    if (first_bottom <= y2 || second_bottom <= y1) {
+        return false;
+    }
+
+    // Rectangles overlap
+    return true;
+}
+
 int main()
 {
+
+
     srand(time(0));
     sf::RenderWindow window(sf::VideoMode(resolutionX, resolutionY), "Centipede");
 
@@ -52,6 +76,10 @@ int main()
     sf::RectangleShape mushroom(sf::Vector2f(32, 32));
     mushroom.setFillColor(sf::Color::Red);
     mushroom.setPosition((rand() % resolutionX + 1), (rand() % resolutionY + 1));
+    bool mushroom_visible = true;
+
+    //Score
+    int score = 0;
 
 
     while (window.isOpen())
@@ -87,7 +115,11 @@ int main()
             playerSprite.move(0, 1);
         }
         window.draw(playerSprite);
-        window.draw(mushroom);
+
+        if(mushroom_visible)
+        {
+            window.draw(mushroom);
+        }
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
         {
@@ -102,6 +134,16 @@ int main()
             if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
             {
                 bullet_visible = false;
+            }
+            if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x, bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, mushroom.getSize().x, mushroom.getSize().y))
+            {
+                
+                cout << "Boom\n";
+                bullet_visible = false;
+                mushroom_visible = false;
+                score++;
+                cout << "Score = " << score << "\n";
+
             }
         }
 
