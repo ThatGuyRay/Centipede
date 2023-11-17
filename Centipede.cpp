@@ -14,6 +14,16 @@ int main()
     player.setFillColor(sf::Color::Red);
     player.setPosition(385, 570);
 
+
+    sf::Texture backgroundTexture;
+    if(!backgroundTexture.loadFromFile("background.png")) {
+        cerr << "Error in loading file. Terminating...\n";
+        return -1;
+    }
+    sf::Sprite backgroundSprite;
+    backgroundSprite.setTexture(backgroundTexture);
+    
+
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
@@ -24,7 +34,8 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        window.clear(sf::Color::Black);
+        // window.clear(sf::Color::Black);
+        window.draw(backgroundSprite);
 
         // draw everything here...
 
