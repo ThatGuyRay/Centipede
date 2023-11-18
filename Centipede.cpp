@@ -16,6 +16,7 @@ const int boxPixelsY = 32;
 const int gameRows = resolutionX / boxPixelsX; // Total rows on grid
 const int gameColumns = resolutionY / boxPixelsY; // Total columns on grid
 const int frameRate = 60;
+const int playerRows = 5;
 
 // Initializing GameGrid.
 int gameGrid[gameRows][gameColumns] = {};
@@ -30,7 +31,9 @@ void movePlayer(float player[]);
 void moveBullet(float bullet[]);
 void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite);
 void fireBullet(float bullet[], float player[]);
-
+void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture);
+void gridToPixel(int gridx, int gridy, int pixelarray[]);
+void generateMushrooms(int number_of_mushrooms);
 
 
 bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
@@ -121,12 +124,7 @@ int main()
         cerr << "Error in loading mushroom file. Terminating...\n";
         return -1;
     }
-    sf::Sprite mushroom;
-    mushroom.setTexture(mushroomTexture);
-    mushroom.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
-    mushroom.setPosition((rand() % resolutionX + 1), (rand() % resolutionY + 1));
-    bool mushroom_visible = true;
-    int mushroom_hits = 0;
+    generateMushrooms(25);
 
     //Score
     int score = 0;
@@ -141,7 +139,7 @@ int main()
             continue;
         }
         frameRateClock.restart();
-        
+
         // check all the window's events that were triggered since the last iteration of the loop
         sf::Event event;
         while (window.pollEvent(event))
@@ -165,20 +163,9 @@ int main()
 			drawBullet(window, bullet, bulletSprite);
         }
 
+        drawMushrooms(window, mushroomTexture);
 
-        if(mushroom_visible)
-        {
-            window.draw(mushroom);
-        }
 
-        // if(bullet_visible)
-        // {   
-        //     window.draw(bulletSprite);
-        //     bulletSprite.setPosition(bulletSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
-        //     if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
-        //     {
-        //         bullet_visible = false;
-        //     }
         //     if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x,
         //          bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, boxPixelsX, boxPixelsY))
         //     {
@@ -194,7 +181,6 @@ int main()
         //         }
 
         //     }
-        // }
 
         // end the current frame
         window.display();
@@ -217,7 +203,7 @@ void movePlayer(float player[])
     {
         player[x] += 1;
     }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player[y] > 800)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player[y] > resolutionY - (playerRows * boxPixelsY))
     {
         player[y] -= 1;
     }
@@ -249,4 +235,47 @@ void fireBullet(float bullet[], float player[])
             bullet[y] = player[y] - boxPixelsY;
             bullet[exists] = true;
         }
+}
+
+void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture)
+{
+    for(int i = 0; i < gameRows; i++)
+    {
+        for(int j = 0; j < gameColumns; j++)
+        {
+            if(gameGrid[i][j] == 1)
+            {
+                sf::Sprite mushroom;
+                mushroom.setTexture(mushroomTexture);
+                mushroom.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
+                int positionArray[2] = {};
+                gridToPixel(i, j, positionArray);
+                mushroom.setPosition(positionArray[x], positionArray[y]);
+                window.draw(mushroom);
+            }
+        }
+    }
+}
+
+void gridToPixel(int gridx, int gridy, int pixelarray[])
+{
+    pixelarray[0] = gridx * 32;
+    pixelarray[1] = gridy * 32;
+}
+
+void generateMushrooms(int number_of_mushrooms)
+{
+    int current_total = 0;
+    while(current_total <= number_of_mushrooms)
+    {
+        int random_row = (rand() % gameRows);
+        int random_column = (rand() % (gameColumns - playerRows)); // Leaving the last row empty of mushrooms
+        cout << random_row << " " << random_column << endl;
+        if(gameGrid[random_row][random_column] == 0)
+        {
+            gameGrid[random_row][random_column] = 1;
+            current_total++;
+        }
+    }
+
 }
