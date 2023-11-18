@@ -5,9 +5,31 @@
 #include <SFML/Graphics.hpp>
 using namespace std;
 
+// Initializing Dimensions.
+// resolutionX and resolutionY determine the rendering resolution.
+// Don't edit unless required. Use functions on lines 43, 44, 45 for resizing the game window.
 const int resolutionX = 960;
 const int resolutionY = 960;
-const int mushroom_size = 32;
+const int boxPixelsX = 32;
+const int boxPixelsY = 32;
+const int gameRows = resolutionX / boxPixelsX; // Total rows on grid
+const int gameColumns = resolutionY / boxPixelsY; // Total columns on grid
+
+// Initializing GameGrid.
+int gameGrid[gameRows][gameColumns] = {};
+
+// The following exist purely for readability.
+const int x = 0;
+const int y = 1;
+const int exists = 2;
+
+void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSprite);
+void movePlayer(float player[]);
+void moveBullet(float bullet[]);
+void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite);
+
+
+
 
 bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
 {
@@ -34,10 +56,21 @@ bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int 
 
 int main()
 {
-
-
     srand(time(0));
-    sf::RenderWindow window(sf::VideoMode(resolutionX, resolutionY), "Centipede");
+
+    // Declaring RenderWindow.
+	sf::RenderWindow window(sf::VideoMode(resolutionX, resolutionY), "Centipede", sf::Style::Close | sf::Style::Titlebar);
+
+	// Used to resize your window if it's too big or too small. Use according to your needs.
+	// window.setSize(sf::Vector2u(640, 640)); // Recommended for 1366x768 (768p) displays.
+	// window.setSize(sf::Vector2u(1280, 1280)); // Recommended for 2560x1440 (1440p) displays.
+	// window.setSize(sf::Vector2u(1920, 1920)); // Recommended for 3840x2160 (4k) displays.
+	
+	// Used to position your window on every launch. Use according to your needs.
+	window.setPosition(sf::Vector2i(100, 0));
+
+    // Todo: Add Music.
+
 
 
     // Background
@@ -48,8 +81,12 @@ int main()
     }
     sf::Sprite backgroundSprite;
     backgroundSprite.setTexture(backgroundTexture);
+    backgroundSprite.setColor(sf::Color(255, 255, 255, 255 * 0.50)); // Reduce Opacity to 25%
 
-    //Player
+    // Initializing Player and Player Sprites.
+	float player[2] = {};
+    player[x] = resolutionX/2 - boxPixelsX;
+    player[y] = resolutionY - boxPixelsY;
     sf::Texture playerTexture;
     if(!playerTexture.loadFromFile("player.png"))
     {
@@ -58,9 +95,13 @@ int main()
     }
     sf::Sprite playerSprite;
     playerSprite.setTexture(playerTexture);
-    playerSprite.setPosition(resolutionX/2 - playerTexture.getSize().x, resolutionY - playerTexture.getSize().y);
-
-    //Bullet Creation
+    playerSprite.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
+   
+    // Initializing Bullet and Bullet Sprites.
+    float bullet[3] = {};
+    bullet[x] = player[x];
+    bullet[y] = player[y] - boxPixelsY;
+    bullet[exists] = true;
     sf::Texture bulletTexture;
     if(!bulletTexture.loadFromFile("bullet.png"))
     {
@@ -69,9 +110,7 @@ int main()
     }
     sf::Sprite bulletSprite;
     bulletSprite.setTexture(bulletTexture);
-    bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
-    bool bullet_visible = false;
-    float bullet_speed = 1;
+    bulletSprite.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
 
     //Mushroom Creation
     sf::Texture mushroomTexture;
@@ -82,7 +121,7 @@ int main()
     }
     sf::Sprite mushroom;
     mushroom.setTexture(mushroomTexture);
-    mushroom.setTextureRect(sf::IntRect(0, 0, mushroom_size, mushroom_size));
+    mushroom.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
     mushroom.setPosition((rand() % resolutionX + 1), (rand() % resolutionY + 1));
     bool mushroom_visible = true;
     int mushroom_hits = 0;
@@ -101,68 +140,97 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        // window.clear(sf::Color::Black);
+        window.clear(sf::Color::Black);
         window.draw(backgroundSprite);
 
         // draw everything here...
+        movePlayer(player);
+        drawPlayer(window, player, playerSprite);
 
+        if (bullet[exists] == true) 
+        {
+			moveBullet(bullet);
+			drawBullet(window, bullet, bulletSprite);
+        }
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && playerSprite.getPosition().x > 0)
-        {
-            playerSprite.move(-1, 0);
-        }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && playerSprite.getPosition().x < resolutionX - playerSprite.getTexture()->getSize().x)
-        {
-            playerSprite.move(1, 0);
-        }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && playerSprite.getPosition().y > 800)
-        {
-            playerSprite.move(0, -1);
-        }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && playerSprite.getPosition().y < resolutionY - playerSprite.getTexture()->getSize().y)
-        {
-            playerSprite.move(0, 1);
-        }
-        window.draw(playerSprite);
 
         if(mushroom_visible)
         {
             window.draw(mushroom);
         }
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
-        {
-            bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
-            bullet_visible = true;
-        }
+        // if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
+        // {
+        //     bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
+        //     bullet_visible = true;
+        // }
 
-        if(bullet_visible)
-        {   
-            window.draw(bulletSprite);
-            bulletSprite.setPosition(bulletSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
-            if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
-            {
-                bullet_visible = false;
-            }
-            if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x,
-                 bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, mushroom_size, mushroom_size))
-            {
+        // if(bullet_visible)
+        // {   
+        //     window.draw(bulletSprite);
+        //     bulletSprite.setPosition(bulletSprite.getPosition().x, bulletSprite.getPosition().y - bullet_speed);
+        //     if(bulletSprite.getPosition().y < -static_cast<int>(bulletTexture.getSize().y))
+        //     {
+        //         bullet_visible = false;
+        //     }
+        //     if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x,
+        //          bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, boxPixelsX, boxPixelsY))
+        //     {
                 
-                cout << "Boom\n";
-                bullet_visible = false;
-                mushroom_hits++;
-                if(mushroom_hits == 2)
-                {
-                    mushroom_visible = false;
-                    score++;
-                    cout << "Score = " << score << "\n";
-                }
+        //         cout << "Boom\n";
+        //         bullet_visible = false;
+        //         mushroom_hits++;
+        //         if(mushroom_hits == 2)
+        //         {
+        //             mushroom_visible = false;
+        //             score++;
+        //             cout << "Score = " << score << "\n";
+        //         }
 
-            }
-        }
+        //     }
+        // }
 
         // end the current frame
         window.display();
     }
     return 0;
+}
+
+void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSprite) {
+	playerSprite.setPosition(player[x], player[y]);
+	window.draw(playerSprite);
+}
+
+void movePlayer(float player[])
+{
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && player[x] > 0)
+    {
+        player[x] -= 1;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && player[x] < resolutionX - boxPixelsX)
+    {
+        player[x] += 1;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player[y] > 800)
+    {
+        player[y] -= 1;
+    }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && player[y] < resolutionY - boxPixelsY)
+    {
+        player[y] += 1; 
+    }
+}
+
+void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite) {
+	bulletSprite.setPosition(bullet[x], bullet[y]);
+	window.draw(bulletSprite);
+}
+
+void moveBullet(float bullet[])
+{
+    bullet[y] -= 10;	
+	if (bullet[y] < -32)
+    {
+		bullet[exists] = false;
+    }
 }
