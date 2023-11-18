@@ -3,6 +3,7 @@
 #include <ctime>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 using namespace std;
 
 // Initializing Dimensions.
@@ -14,6 +15,7 @@ const int boxPixelsX = 32;
 const int boxPixelsY = 32;
 const int gameRows = resolutionX / boxPixelsX; // Total rows on grid
 const int gameColumns = resolutionY / boxPixelsY; // Total columns on grid
+const int frameRate = 60;
 
 // Initializing GameGrid.
 int gameGrid[gameRows][gameColumns] = {};
@@ -27,7 +29,7 @@ void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSpri
 void movePlayer(float player[]);
 void moveBullet(float bullet[]);
 void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite);
-
+void fireBullet(float bullet[], float player[]);
 
 
 
@@ -101,7 +103,7 @@ int main()
     float bullet[3] = {};
     bullet[x] = player[x];
     bullet[y] = player[y] - boxPixelsY;
-    bullet[exists] = true;
+    bullet[exists] = false;
     sf::Texture bulletTexture;
     if(!bulletTexture.loadFromFile("bullet.png"))
     {
@@ -129,9 +131,17 @@ int main()
     //Score
     int score = 0;
 
+    sf::Clock frameRateClock;
 
     while (window.isOpen())
     {
+        // check time elapsed
+        if(frameRateClock.getElapsedTime().asSeconds() < 1/frameRate)
+        {
+            continue;
+        }
+        frameRateClock.restart();
+        
         // check all the window's events that were triggered since the last iteration of the loop
         sf::Event event;
         while (window.pollEvent(event))
@@ -147,6 +157,8 @@ int main()
         movePlayer(player);
         drawPlayer(window, player, playerSprite);
 
+        fireBullet(bullet, player);
+
         if (bullet[exists] == true) 
         {
 			moveBullet(bullet);
@@ -158,12 +170,6 @@ int main()
         {
             window.draw(mushroom);
         }
-
-        // if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet_visible)
-        // {
-        //     bulletSprite.setPosition(playerSprite.getPosition().x, playerSprite.getPosition().y - bulletTexture.getSize().y);
-        //     bullet_visible = true;
-        // }
 
         // if(bullet_visible)
         // {   
@@ -228,9 +234,19 @@ void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSpri
 
 void moveBullet(float bullet[])
 {
-    bullet[y] -= 10;	
+    bullet[y] -= 1;	
 	if (bullet[y] < -32)
     {
 		bullet[exists] = false;
     }
+}
+
+void fireBullet(float bullet[], float player[])
+{
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet[exists])
+        {
+            bullet[x] = player[x];
+            bullet[y] = player[y] - boxPixelsY;
+            bullet[exists] = true;
+        }
 }
