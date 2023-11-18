@@ -34,6 +34,8 @@ void fireBullet(float bullet[], float player[]);
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture);
 void gridToPixel(int gridx, int gridy, int pixelarray[]);
 void generateMushrooms(int number_of_mushrooms);
+bool bulletCollision(float bullet[]);
+void pixelToGrid(float pixelarray[], int gridarray[]);
 
 
 bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
@@ -124,7 +126,7 @@ int main()
         cerr << "Error in loading mushroom file. Terminating...\n";
         return -1;
     }
-    generateMushrooms(25);
+    generateMushrooms(20 + (rand() % 10));
 
     //Score
     int score = 0;
@@ -161,28 +163,17 @@ int main()
         {
 			moveBullet(bullet);
 			drawBullet(window, bullet, bulletSprite);
+            if(bulletCollision(bullet))
+            {
+                score++;
+                cout << "Score: " << score << endl;
+                bullet[exists] = false;
+            }
         }
+
 
         drawMushrooms(window, mushroomTexture);
 
-
-        //     if(mushroom_visible && isIntersecting(bulletSprite.getPosition().x, bulletSprite.getPosition().y, bulletTexture.getSize().x,
-        //          bulletTexture.getSize().y, mushroom.getPosition().x, mushroom.getPosition().y, boxPixelsX, boxPixelsY))
-        //     {
-                
-        //         cout << "Boom\n";
-        //         bullet_visible = false;
-        //         mushroom_hits++;
-        //         if(mushroom_hits == 2)
-        //         {
-        //             mushroom_visible = false;
-        //             score++;
-        //             cout << "Score = " << score << "\n";
-        //         }
-
-        //     }
-
-        // end the current frame
         window.display();
     }
     return 0;
@@ -270,7 +261,6 @@ void generateMushrooms(int number_of_mushrooms)
     {
         int random_row = (rand() % gameRows);
         int random_column = (rand() % (gameColumns - playerRows)); // Leaving the last row empty of mushrooms
-        cout << random_row << " " << random_column << endl;
         if(gameGrid[random_row][random_column] == 0)
         {
             gameGrid[random_row][random_column] = 1;
@@ -279,3 +269,25 @@ void generateMushrooms(int number_of_mushrooms)
     }
 
 }
+
+bool bulletCollision(float bullet[])
+{
+    int gridarray[2];
+    pixelToGrid(bullet, gridarray);
+    if(gameGrid[gridarray[0]][gridarray[1]] != 0)
+    {
+        gameGrid[gridarray[0]][gridarray[1]] = 0;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void pixelToGrid(float pixelarray[], int gridarray[])
+{
+    gridarray[0] = pixelarray[0] / 32;
+    gridarray[1] = pixelarray[1] / 32;
+}
+
