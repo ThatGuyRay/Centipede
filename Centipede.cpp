@@ -37,30 +37,6 @@ void generateMushrooms(int number_of_mushrooms);
 bool bulletCollision(float bullet[]);
 void pixelToGrid(float pixelarray[], int gridarray[]);
 
-
-bool isIntersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) 
-{
-    // Calculate the right and bottom coordinates for each rectangle
-    int first_right = x1 + w1;
-    int first_bottom = y1 + h1;
-
-    int second_right = x2 + w2;
-    int second_bottom = y2 + h2;
-
-    // If one rectangle is on left side of other
-    if (first_right <= x2 || second_right <= x1) {
-        return false;
-    }
-
-    // If one rectangle is above other
-    if (first_bottom <= y2 || second_bottom <= y1) {
-        return false;
-    }
-
-    // Rectangles overlap
-    return true;
-}
-
 int main()
 {
     srand(time(0));
@@ -128,6 +104,8 @@ int main()
     }
     generateMushrooms(20 + (rand() % 10));
 
+    //Centipede Creation
+
     //Score
     int score = 0;
 
@@ -186,21 +164,22 @@ void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSpri
 
 void movePlayer(float player[])
 {
+    float speed = 0.6;
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && player[x] > 0)
     {
-        player[x] -= 1;
+        player[x] -= speed;
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && player[x] < resolutionX - boxPixelsX)
     {
-        player[x] += 1;
+        player[x] += speed;
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && player[y] > resolutionY - (playerRows * boxPixelsY))
     {
-        player[y] -= 1;
+        player[y] -= speed;
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && player[y] < resolutionY - boxPixelsY)
     {
-        player[y] += 1; 
+        player[y] += speed; 
     }
 }
 
@@ -273,6 +252,7 @@ void generateMushrooms(int number_of_mushrooms)
 bool bulletCollision(float bullet[])
 {
     int gridarray[2];
+    int hitcounter = 0;
     pixelToGrid(bullet, gridarray);
     if(gameGrid[gridarray[0]][gridarray[1]] != 0)
     {
@@ -287,7 +267,6 @@ bool bulletCollision(float bullet[])
 
 void pixelToGrid(float pixelarray[], int gridarray[])
 {
-    gridarray[0] = pixelarray[0] / 32;
+    gridarray[0] = pixelarray[0] / 31;
     gridarray[1] = pixelarray[1] / 32;
 }
-
