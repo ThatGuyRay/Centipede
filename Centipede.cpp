@@ -15,7 +15,7 @@ const int boxPixelsX = 32;
 const int boxPixelsY = 32;
 const int gameRows = resolutionX / boxPixelsX; // Total rows on grid
 const int gameColumns = resolutionY / boxPixelsY; // Total columns on grid
-const int frameRate = 30;
+const int frameRate = 60;
 const int playerRows = 5;
 
 // Initializing GameGrid.
@@ -141,6 +141,7 @@ int main()
 
     //Score
     int score = 0;
+    int centipederate = 0;
 
     sf::Clock frameRateClock;
 
@@ -179,11 +180,16 @@ int main()
                 bullet[exists] = false;
             }
         }
+        if(centipederate == 20)
+        {
+            moveCentipede(numberofCentipede, isLeft, centipedeheadPositionX, centipedeheadPositionY);
+            centipederate = 0;
+        }
+        centipederate++;
 
-        moveCentipede(numberofCentipede, isLeft, centipedeheadPositionX, centipedeheadPositionY);
         UpdateGrid(numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
         drawCentipede(window, centipedeheadTexture, centipedebodyTexture, centipedeheadPositionX, centipedeheadPositionY, numberofCentipede, centipedeLength);
-
+        
 
         drawMushrooms(window, mushroomTexture);
 
@@ -432,7 +438,12 @@ void moveCentipede(int numberofCentipede, bool isLeft[], int centipedeheadPositi
                 direction = true;
             }
         }
-        cout << currentx << " " << currenty << endl;
+        if(gameGrid[currentx][currenty] != 0)
+        {
+            currenty++;
+            currentx = direction ? currentx + 1 : currentx - 1;
+            direction = !direction;
+        }
         centipedeheadPositionX[i] = currentx;
         centipedeheadPositionY[i] = currenty;
         isLeft[i] = direction;
