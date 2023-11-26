@@ -21,6 +21,8 @@ const int playerRows = 5;
 // Initializing GameGrid.
 int gameGrid[gameRows][gameColumns] = {};
 
+const int maxCentipedeSize = 12;
+
 // The following exist purely for readability.
 const int x = 0;
 const int y = 1;
@@ -34,8 +36,13 @@ void fireBullet(float bullet[], float player[]);
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture);
 void gridToPixel(int gridx, int gridy, int pixelarray[]);
 void generateMushrooms(int number_of_mushrooms);
-bool bulletCollision(float bullet[]);
+bool bulletCollision(float bullet[], int& score);
 void pixelToGrid(float pixelarray[], int gridarray[]);
+void generateCentipede(int len, bool isleft, int headposition[], int& numberofCentipede, 
+    bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
+void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, sf::Texture& centipedebodyTexture, 
+    int centipede_head_positionX[], int centipede_head_positionY[], int numberofCentipedes, int centipedeLength[maxCentipedeSize]);
+void UpdateGrid(int numberofCentipede, bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
 
 int main()
 {
@@ -51,6 +58,32 @@ int main()
 	
 	// Used to position your window on every launch. Use according to your needs.
 	window.setPosition(sf::Vector2i(100, 0));
+
+    //Set up Centipedes.
+    int numberofCentipede = 0;
+    int centipedeLength[maxCentipedeSize] = {};
+    bool isLeft[maxCentipedeSize] = {};
+    int centipedeheadPositionX[maxCentipedeSize] = {};
+    int centipedeheadPositionY[maxCentipedeSize] = {};
+
+    int starting_position[2] = {5, 4};
+    generateCentipede(12, true, starting_position, numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
+    
+    // gameGrid[5][4] = 10;
+    // gameGrid[4][4] = 11;
+    // gameGrid[3][4] = 11;
+    // gameGrid[2][4] = 11;
+    // gameGrid[1][4] = 11;
+    // gameGrid[0][4] = 11;
+    // gameGrid[0][3] = 11;
+    // gameGrid[1][3] = 11;
+    // gameGrid[2][3] = 11;
+    // gameGrid[3][3] = 11;
+    // gameGrid[4][3] = 11;
+    // gameGrid[5][3] = 11;
+    // gameGrid[6][3] = 11;
+    // gameGrid[7][3] = 11;
+
 
     // Todo: Add Music.
 
@@ -104,7 +137,21 @@ int main()
     }
     generateMushrooms(20 + (rand() % 10));
 
-    //Centipede Creation
+    //Centipede Head Creation
+    sf::Texture centipedeheadTexture;
+    if(!centipedeheadTexture.loadFromFile("c_head_left_walk.png"))
+    {
+        cerr << "Error in loading centipede head file. Terminating...\n";
+        return -1;
+    }
+
+    //Centipede Body Creation
+    sf::Texture centipedebodyTexture;
+    if(!centipedebodyTexture.loadFromFile("c_body_left_walk.png"))
+    {
+        cerr << "Error in loading centipede body file. Termiating...\n";
+        return -1;
+    }
 
     //Score
     int score = 0;
@@ -141,16 +188,17 @@ int main()
         {
 			moveBullet(bullet);
 			drawBullet(window, bullet, bulletSprite);
-            if(bulletCollision(bullet))
+            if(bulletCollision(bullet, score))
             {
-                score++;
-                cout << "Score: " << score << endl;
                 bullet[exists] = false;
             }
         }
 
+        UpdateGrid(numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
+        drawCentipede(window, centipedeheadTexture, centipedebodyTexture, centipedeheadPositionX, centipedeheadPositionY, numberofCentipede, centipedeLength);
 
-        drawMushrooms(window, mushroomTexture);
+
+        // drawMushrooms(window, mushroomTexture);
 
         window.display();
     }
@@ -213,11 +261,18 @@ void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture)
     {
         for(int j = 0; j < gameColumns; j++)
         {
-            if(gameGrid[i][j] == 1)
+            if(gameGrid[i][j] == 2 || gameGrid[i][j] == 1)
             {
                 sf::Sprite mushroom;
                 mushroom.setTexture(mushroomTexture);
-                mushroom.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
+                if(gameGrid[i][j] == 2)
+                {
+                    mushroom.setTextureRect(sf::IntRect(0, 0, boxPixelsX, boxPixelsY));
+                }
+                else if(gameGrid[i][j] == 1)
+                {
+                    mushroom.setTextureRect(sf::IntRect(32, 0, boxPixelsX, boxPixelsY));
+                }
                 int positionArray[2] = {};
                 gridToPixel(i, j, positionArray);
                 mushroom.setPosition(positionArray[x], positionArray[y]);
@@ -242,21 +297,26 @@ void generateMushrooms(int number_of_mushrooms)
         int random_column = (rand() % (gameColumns - playerRows)); // Leaving the last row empty of mushrooms
         if(gameGrid[random_row][random_column] == 0)
         {
-            gameGrid[random_row][random_column] = 1;
+            gameGrid[random_row][random_column] = 2;
             current_total++;
         }
     }
 
 }
 
-bool bulletCollision(float bullet[])
+bool bulletCollision(float bullet[], int& score)
 {
     int gridarray[2];
     int hitcounter = 0;
     pixelToGrid(bullet, gridarray);
-    if(gameGrid[gridarray[0]][gridarray[1]] != 0)
+    if(gameGrid[gridarray[0]][gridarray[1]] == 2 || gameGrid[gridarray[0]][gridarray[1]] == 1)
     {
-        gameGrid[gridarray[0]][gridarray[1]] = 0;
+        gameGrid[gridarray[0]][gridarray[1]]--;
+        if(gameGrid[gridarray[0]][gridarray[1]] == 0)
+        {
+            score++;
+            cout << "Score: " << score << endl;
+        }
         return true;
     }
     else
@@ -269,4 +329,105 @@ void pixelToGrid(float pixelarray[], int gridarray[])
 {
     gridarray[0] = pixelarray[0] / 31;
     gridarray[1] = pixelarray[1] / 32;
+}
+
+void generateCentipede(int len, bool isleft, int headposition[], int& numberofCentipede, 
+    bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[])
+{
+    centipedeheadPositionX[numberofCentipede] = headposition[x];
+    centipedeheadPositionY[numberofCentipede] = headposition[y];
+    centipedeLength[numberofCentipede] = len;
+    isLeft[numberofCentipede] = isleft;
+    numberofCentipede++;
+}
+
+void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, sf::Texture& centipedebodyTexture,
+    int centipede_head_positionX[], int centipede_head_positionY[], int numberofCentipedes, int centipedeLength[maxCentipedeSize])
+{
+    for (int i = 0; i < gameRows; i++)
+    {
+        for (int j = 0; j < gameColumns; j++)
+        {
+            if (gameGrid[i][j] == 10 || gameGrid[i][j] == 11)
+            {
+                sf::Sprite centipedeSprite;
+                if(gameGrid[i][j] == 10)
+                {
+                    centipedeSprite.setTexture(centipedeheadTexture);
+                }
+                if(gameGrid[i][j] == 11)
+                {
+                    centipedeSprite.setTexture(centipedebodyTexture);
+                }
+                centipedeSprite.setTextureRect(sf::IntRect(0, 0, 28, 32));
+                int positionArray[2] = {};
+                gridToPixel(i, j, positionArray);
+                centipedeSprite.setPosition(positionArray[x], positionArray[y]);
+                window.draw(centipedeSprite);
+            }
+                
+        }
+    }
+}
+
+void UpdateGrid(int numberofCentipede, bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[])
+{
+    for(int i = 0; i < gameRows; i++)
+    {
+        for(int j = 0; j < gameColumns; j++)
+        {
+            if(gameGrid[i][j] == 10 || gameGrid[i][j] == 11)
+            {
+                gameGrid[i][j] = 0;
+            }
+        }
+    }
+
+    for(int i = 0; i < numberofCentipede; i++)
+    {
+        int currentx = centipedeheadPositionX[i];
+        int currenty = centipedeheadPositionY[i];
+        bool direction = isLeft[i];
+        gameGrid[currentx][currenty] = 10;
+        for(int j = 0; j < centipedeLength[i]; j++)
+        {
+            if(direction == true)
+            {
+                currentx -= 1;
+                if(currentx < 0)
+                {
+                    currenty--;
+                    currentx++;
+                    direction = false;
+                }
+            }
+            else
+            {
+                currentx += 1;
+                if(currentx > gameColumns)
+                {
+                    currenty--;
+                    currentx--;
+                    direction = true;
+                }
+            }
+            gameGrid[currentx][currenty] = 11;
+        }
+    }
+    // int bodySegments = centipedeLength[numberofCentipedes] - 1;
+    //             float bodyX = centipede_head_positionX[numberofCentipedes];
+    //             float bodyY = centipede_head_positionY[numberofCentipedes];
+
+    //             for (int seg = 0; seg < bodySegments; ++seg)
+    //             {
+    //                 bodyX -= boxPixelsX;
+    //                 if(bodyX < 0)
+    //                 {
+    //                     bodyY -= boxPixelsY;
+    //                     bodyX += boxPixelsX;
+    //                 }
+    //                 centipedeBody.setPosition(bodyX, bodyY);
+    //                 window.draw(centipedeBody);
+    //             }
+    //         }
 }
