@@ -41,7 +41,7 @@ void pixelToGrid(float pixelarray[], int gridarray[]);
 // void generateCentipede(int len, bool isleft, int headposition[], int& numberofCentipede, 
 //     bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
 void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, sf::Texture& centipedebodyTexture, 
-    int numberofCentipede, int centipede[][maxCentipedeSize][2]);
+    int maxnumber_centipede, int numberofcentipedes, int centipede[][maxCentipedeSize][2]);
 // void UpdateGrid(int numberofCentipede, bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
 // void moveCentipede(int numberofCentipede, bool isLeft[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
 
@@ -61,12 +61,13 @@ int main()
 	window.setPosition(sf::Vector2i(100, 0));
 
     //Set up Centipedes.
-    int numberofCentipede = 12;
+    int numberofCentipede = 0;
+    int maxnumber_centipede = 12;
     // int centipedeLength[maxCentipedeSize] = {};
     // bool isLeft[maxCentipedeSize] = {};
     // int centipedeheadPositionX[maxCentipedeSize] = {};
     // int centipedeheadPositionY[maxCentipedeSize] = {};
-    int centipedearray[numberofCentipede][maxCentipedeSize][2] = {};
+    int centipedearray[maxnumber_centipede][maxCentipedeSize][2] = {};
 
     //Head
     centipedearray[0][0][x] = 5;
@@ -228,7 +229,7 @@ int main()
         centipederate++;
 
         // UpdateGrid(numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
-        drawCentipede(window, centipedeheadTexture, centipedebodyTexture, numberofCentipede, centipedearray);
+        drawCentipede(window, centipedeheadTexture, centipedebodyTexture, maxnumber_centipede, numberofCentipede, centipedearray);
         
 
         drawMushrooms(window, mushroomTexture);
@@ -377,9 +378,9 @@ void pixelToGrid(float pixelarray[], int gridarray[])
 // }
 
 void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, sf::Texture& centipedebodyTexture, 
-    int numberofCentipede, int centipede[][maxCentipedeSize][2])
+    int maxnumber_centipede, int numberofcentipedes, int centipede[][maxCentipedeSize][2])
 {
-    for(int currentcentipede = 0; currentcentipede < numberofCentipede; currentcentipede++)
+    for(int currentcentipede = 0; currentcentipede < numberofcentipedes; currentcentipede++)
     {
         for(int bodysegment = 0; bodysegment < maxCentipedeSize; bodysegment++)
         {
@@ -391,12 +392,14 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
             int bodyx = centipede[currentcentipede][bodysegment][x];
             int bodyy = centipede[currentcentipede][bodysegment][y];
 
+            cout << "Centipede " << currentcentipede << ", Segment " << bodysegment << ": (" << bodyx << ", " << bodyy << ")" << endl;
+
             sf::Sprite centipedeSprite;
             if(bodysegment == 0)
             {
                 centipedeSprite.setTexture(centipedeheadTexture);
             }
-            else
+            else 
             {
                 centipedeSprite.setTexture(centipedebodyTexture);
             }
