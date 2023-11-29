@@ -105,6 +105,7 @@ int main()
     //Body-11
     centipedearray[0][11][x] = 5;
     centipedearray[0][11][y] = 3;
+    isLeft[0] = false;
 
     numberofCentipede++;
 
@@ -475,82 +476,41 @@ void moveCentipede(int numberofCentipede, bool isLeft[], int centipede[][maxCent
 
             centipede[currentcentipede][bodysegment][x] = centipede[currentcentipede][bodysegment - 1][x];
             centipede[currentcentipede][bodysegment][y] = centipede[currentcentipede][bodysegment - 1][y];
-
-            int currentx = centipede[currentcentipede][0][x];
-            int currenty = centipede[currentcentipede][0][y];
-
-            if(direction == true)
-            {
-                currentx -= 1;
-                if(currentx < 0)
-                {
-                    currentx = 0;
-                    currenty++;
-                    direction = false;
-                }
-            }
-
-            else if(direction = false)
-            {
-                currentx += 1;
-                if(currentx > gameColumns - 1)
-                {
-                    currentx = gameColumns - 1;
-                    currenty++;
-                    direction = true;
-                }
-            }
-
-            if(gameGrid[currentx][currenty] != 0)
-            {
-                currenty++;
-                currentx = direction ? currentx + 1 : currentx - 1;
-                direction = !direction;
-            }
-
-            centipede[currentcentipede][bodysegment - 1][x] = currentx;
-            centipede[currentcentipede][bodysegment - 1][y] = currenty;
-
-
         }
+        
+        int currentx = centipede[currentcentipede][0][x];
+        int currenty = centipede[currentcentipede][0][y];
+
+        if(direction == true)
+        {
+            currentx -= 1;
+            if(currentx < 0)
+            {
+                currentx = 0;
+                currenty++;
+                direction = false;
+            }
+        }
+        else if(direction == false)
+        {
+            currentx += 1;
+            if(currentx > gameColumns - 1)
+            {
+                currentx = gameColumns - 1;
+                currenty++;
+                direction = true;
+            }
+        }
+
+        if(gameGrid[currentx][currenty] != 0)
+        {
+            currenty++;
+            currentx = direction ? currentx + 1 : currentx - 1;
+            direction = !direction;
+        }
+
+        centipede[currentcentipede][0][x] = currentx;
+        centipede[currentcentipede][0][y] = currenty;
+        isLeft[currentcentipede] = direction;
     }
 }
-
-// void moveCentipede(int numberofCentipede, bool isLeft[], int centipedeheadPositionX[], int centipedeheadPositionY[])
-// {
-//     for(int i = 0; i < numberofCentipede; i++)
-//     {
-//         bool direction = isLeft[i];
-//         int currentx = centipedeheadPositionX[i];
-//         int currenty = centipedeheadPositionY[i];
-//         if(direction == true)
-//         {
-//             currentx -= 1;
-//             if(currentx < 0)
-//             {
-//                 currentx=0;
-//                 currenty++;
-//                 direction = false;
-//             }
-//         }
-//         else if(direction == false)
-//         {
-//             currentx += 1;
-//             if(currentx > gameColumns - 1)
-//             {
-//                 currentx = gameColumns - 1;
-//                 currenty++;
-//                 direction = true;
-//             }
-//         }
-//         if(gameGrid[currentx][currenty] != 0)
-//         {
-//             currenty++;
-//             currentx = direction ? currentx + 1 : currentx - 1;
-//             direction = !direction;
-//         }
-//         centipedeheadPositionX[i] = currentx;
-//         centipedeheadPositionY[i] = currenty;
-//         isLeft[i] = direction;
-//     }
-// 
