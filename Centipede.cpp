@@ -21,7 +21,7 @@ const int playerRows = 5;
 // Initializing GameGrid.
 int gameGrid[gameRows][gameColumns] = {};
 
-const int maxCentipedeSize = 12;
+const int maxCentipedeSize = 11;
 
 // The following exist purely for readability.
 const int x = 0;
@@ -61,7 +61,7 @@ int main()
 	window.setPosition(sf::Vector2i(100, 0));
 
     //Set up Centipedes.
-    int numberofCentipede = 0;
+    int numberofCentipede = 12;
     // int centipedeLength[maxCentipedeSize] = {};
     // bool isLeft[maxCentipedeSize] = {};
     // int centipedeheadPositionX[maxCentipedeSize] = {};
@@ -104,9 +104,8 @@ int main()
     //Body-11
     centipedearray[0][11][x] = 5;
     centipedearray[0][11][y] = 3;
-    //Body-12
-    centipedearray[0][12][x] = 6;
-    centipedearray[0][12][y] = 3;
+
+    numberofCentipede++;
 
     // int starting_position[2] = {5, 4};
     // generateCentipede(12, true, starting_position, numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
@@ -384,32 +383,32 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
     {
         for(int bodysegment = 0; bodysegment < maxCentipedeSize; bodysegment++)
         {
-            for(int currentrow = 0; currentrow < gameRows; currentrow++)
+            if(centipede[currentcentipede][bodysegment][x] = -1)
             {
-                for(int currentcolumns = 0; currentcolumns < gameColumns; currentcolumns++)
-                {
-                    if(gameGrid[currentrow][currentcolumns] == 10 || gameGrid[currentrow][currentcolumns] == 11)
-                    {
-                        sf::Sprite centipedeSprite;
-                        if(bodysegment == 0)
-                        {
-                            centipedeSprite.setTexture(centipedebodyTexture);
-                        }
-                        else
-                        {
-                            centipedeSprite.setTexture(centipedebodyTexture);
-                        }
-                        centipedeSprite.setTextureRect(sf::IntRect(0, 0, 28, 32));
-                        int positionArray[2] = {};
-                        gridToPixel(currentrow, currentcolumns, positionArray);
-                        centipedeSprite.setPosition(positionArray[x], positionArray[y]);
-                        window.draw(centipedeSprite);
-                    }
-                }
+                break;
             }
+
+            int bodyx = centipede[currentcentipede][bodysegment][x];
+            int bodyy = centipede[currentcentipede][bodysegment][y];
+
+            sf::Sprite centipedeSprite;
+            if(bodysegment == 0)
+            {
+                centipedeSprite.setTexture(centipedeheadTexture);
+            }
+            else
+            {
+                centipedeSprite.setTexture(centipedebodyTexture);
+            }
+            centipedeSprite.setTextureRect(sf::IntRect(0, 0, 28, 32));
+            int positionArray[2] = {};
+            gridToPixel(bodyx, bodyy, positionArray);
+            centipedeSprite.setPosition(positionArray[x], positionArray[y]);
+            window.draw(centipedeSprite);
         }
     }
 }
+
 // {
 //     for (int i = 0; i < gameRows; i++)
 //     {
