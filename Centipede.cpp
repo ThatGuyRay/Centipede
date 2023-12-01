@@ -222,7 +222,7 @@ int main()
                 bullet[exists] = false;
             }
         }
-        if(centipederate == 20)
+        if(centipederate == 1)
         {
             moveCentipede(numberofCentipede, isLeft, centipedearray);
             centipederate = 0;
@@ -413,6 +413,29 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
     }
 }
 
+void UpdateGrid(int numberofCentipede, int gameGrid[][gameColumns], int centipede[][maxCentipedeSize][2]) {
+    // Delete all old centipede segments from the game grid
+    for (int cI = 0; cI < numberofCentipede; cI++) {
+        for (int bI = 0; bI < maxCentipedeSize; bI++) {
+            int bx = centipede[cI][bI][x];
+            int by = centipede[cI][bI][y];
+            if (bx >= 0 && by >= 0 && bx < gameRows && by < gameColumns) {
+                gameGrid[bx][by] = 0;
+            }
+        }
+    }
+
+    // Add new centipede segments to the game grid
+    for (int cI = 0; cI < numberofCentipede; cI++) {
+        for (int bI = 0; bI < maxCentipedeSize; bI++) {
+            int bx = centipede[cI][bI][x];
+            int by = centipede[cI][bI][y];
+            if (bx >= 0 && by >= 0 && bx < gameRows && by < gameColumns) {
+                gameGrid[bx][by] = (bI == 0) ? 10 : 11;
+            }
+        }
+    }
+}
 
 
 
