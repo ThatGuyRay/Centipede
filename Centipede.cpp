@@ -46,6 +46,7 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
 void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]);
 
 void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2]);
+bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberofCentipede, float player[]);
 
 int main()
 {
@@ -191,6 +192,7 @@ int main()
     {
         std::cerr << "Font File not found" << std::endl;
     }
+    //Score Text
     sf::Text scoreText;
     scoreText.setFont(font);
     scoreText.setString("Score = 0");
@@ -199,9 +201,23 @@ int main()
     scoreText.setPosition(10, 10);
     scoreText.setStyle(sf::Text::Bold);
 
+    //Game over Text
+    sf::Text gameoverText;
+    gameoverText.setFont(font);
+    gameoverText.setString("Game Over");
+    gameoverText.setCharacterSize(60);
+    gameoverText.setFillColor(sf::Color::Red);
+    gameoverText.setPosition(300, 300);
+    gameoverText.setStyle(sf::Text::Bold);
+
+    //Rectangle for effect
+    sf::RectangleShape rectangle(sf::Vector2f(960, 960));
+    rectangle.setFillColor(sf::Color(128, 128, 128, 180));
+
     //Score
     int score = 0;
     int centipederate = 0;
+    bool gameOver;
 
     sf::Clock frameRateClock;
 
@@ -222,6 +238,10 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+
+        // do nothing if game over
+        if (gameOver) continue;
+
         window.clear(sf::Color::Black);
         window.draw(backgroundSprite);
 
@@ -240,9 +260,15 @@ int main()
                 bullet[exists] = false;
             }
         }
-        if(centipederate == 2)
+        if(centipederate == 10)
         {
             moveCentipede(numberofCentipede, isLeft, isBottom, centipedearray);
+            if(playerCentipedeCollision(centipedearray, numberofCentipede, player)) {
+                // draw game over text
+                window.draw(rectangle);
+                window.draw(gameoverText);
+                gameOver = true;
+            }
             centipederate = 0;
         }
         centipederate++;
@@ -501,4 +527,23 @@ void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int ce
         isLeft[currentcentipede] = xdirection;
         isBottom[currentcentipede] = ydirection;
     }
+}
+
+bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberofCentipede, float player[]) {
+    int position_of_player[2] = {};
+    pixelToGrid(player, position_of_player);
+
+    for (int currentcentipede = 0; currentcentipede < numberofCentipede; currentcentipede++) {
+        for (int bodysegment = 0; bodysegment < maxCentipedeSize; bodysegment++) {
+            // Check only if the segment exists
+            if (centipede[currentcentipede][bodysegment][x] != -1) {
+                int body_grid[2] = { centipede[currentcentipede][bodysegment][x], centipede[currentcentipede][bodysegment][y] };
+
+                if (position_of_player[0] == body_grid[0] && position_of_player[1] == body_grid[1]) {
+                    return true; // Collision detected
+                }
+            }
+        }
+    }
+    return false; // No collision detected
 }
