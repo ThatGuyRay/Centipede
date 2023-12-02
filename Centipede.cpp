@@ -225,7 +225,7 @@ int main()
                 bullet[exists] = false;
             }
         }
-        if(centipederate == 1)
+        if(centipederate == 5)
         {
             moveCentipede(numberofCentipede, isLeft, centipedearray);
             centipederate = 0;
@@ -471,7 +471,7 @@ void moveCentipede(int numberofCentipede, bool isLeft[], int centipede[][maxCent
             }
         }
 
-        if(gameGrid[currentx][currenty] != 0)
+        if(gameGrid[currentx][currenty] != 0 || currenty >= gameRows)
         {
             currenty++;
             currentx = direction ? currentx + 1 : currentx - 1;
