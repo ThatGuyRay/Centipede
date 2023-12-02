@@ -44,7 +44,7 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
     int maxnumber_centipede, int numberofcentipedes, int centipede[][maxCentipedeSize][2]);
 void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]);
 
-void moveCentipede(int numberofCentipede, bool isLeft[], int centipede[][maxCentipedeSize][2]);
+void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2]);
 
 int main()
 {
@@ -225,9 +225,9 @@ int main()
                 bullet[exists] = false;
             }
         }
-        if(centipederate == 1)
+        if(centipederate == 2)
         {
-            moveCentipede(numberofCentipede, isLeft, centipedearray);
+            moveCentipede(numberofCentipede, isLeft, isBottom, centipedearray);
             centipederate = 0;
         }
         centipederate++;
@@ -386,8 +386,6 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
             int bodyx = centipede[currentcentipede][bodysegment][x];
             int bodyy = centipede[currentcentipede][bodysegment][y];
 
-            cout << "Centipede " << currentcentipede << ", Segment " << bodysegment << ": (" << bodyx << ", " << bodyy << ")" << endl;
-
             sf::Sprite centipedeSprite;
             if(bodysegment == 0)
             {
@@ -431,11 +429,10 @@ void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]) {
 }
 
 
-void moveCentipede(int numberofCentipede, bool isLeft[], int centipede[][maxCentipedeSize][2])
+void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2])
 {
     for(int currentcentipede = 0; currentcentipede < numberofCentipede; currentcentipede++)
     {
-        bool direction = isLeft[currentcentipede];
         for(int bodysegment = maxCentipedeSize - 1; bodysegment > 0; bodysegment--)
         {
             if(centipede[currentcentipede][bodysegment][x] == -1)
@@ -449,37 +446,39 @@ void moveCentipede(int numberofCentipede, bool isLeft[], int centipede[][maxCent
         
         int currentx = centipede[currentcentipede][0][x];
         int currenty = centipede[currentcentipede][0][y];
+        bool xdirection = isLeft[currentcentipede];
+        bool ydirection = isBottom[currentcentipede];
 
-        if(direction == true)
-        {
-            currentx -= 1;
-            if(currentx < 0)
-            {
+        currentx = xdirection ? currentx - 1 : currentx + 1;
+        // at the edge
+        if (currentx < 0 || currentx > gameColumns - 1) {
+            if (currentx < 0) {
                 currentx = 0;
-                currenty++;
-                direction = false;
-            }
-        }
-        else if(direction == false)
-        {
-            currentx += 1;
-            if(currentx > gameColumns - 1)
-            {
+            } else {
                 currentx = gameColumns - 1;
-                currenty++;
-                direction = true;
+            }
+            xdirection = !xdirection;
+            // check if we have reached bounds of yregion
+            currenty = ydirection ? (currenty + 1) : (currenty - 1);
+            if (currenty > gameRows - 1) {
+                // turn around
+                ydirection = false;
+                currenty = currenty - 2;
+            } else if (ydirection == false && currenty <= (gameRows - playerRows)) {
+                ydirection = true;
             }
         }
 
-        if(gameGrid[currentx][currenty] != 0)
-        {
-            currenty++;
-            currentx = direction ? currentx + 1 : currentx - 1;
-            direction = !direction;
-        }
+        // if(gameGrid[currentx][currenty] != 0)
+        // {
+        //     currentx = direction ? currentx + 1 : currentx - 1;
+        //     currenty = calulcateCentipedeHeadY(currenty, isLeft[currentcentipede], isBottom[currentcentipede]);
+        //     direction = !direction;
+        // }
 
         centipede[currentcentipede][0][x] = currentx;
         centipede[currentcentipede][0][y] = currenty;
-        isLeft[currentcentipede] = direction;
+        isLeft[currentcentipede] = xdirection;
+        isBottom[currentcentipede] = ydirection;
     }
 }
