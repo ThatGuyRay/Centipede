@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <sstream>
 using namespace std;
 
 // Initializing Dimensions.
@@ -184,6 +185,20 @@ int main()
         return -1;
     }
 
+    //Game Text
+    sf::Font font;
+    if(!font.loadFromFile("arial.ttf"))
+    {
+        std::cerr << "Font File not found" << std::endl;
+    }
+    sf::Text scoreText;
+    scoreText.setFont(font);
+    scoreText.setString("Score = 0");
+    scoreText.setCharacterSize(24);
+    scoreText.setFillColor(sf::Color::White);
+    scoreText.setPosition(10, 10);
+    scoreText.setStyle(sf::Text::Bold);
+
     //Score
     int score = 0;
     int centipederate = 0;
@@ -238,7 +253,10 @@ int main()
 
         drawMushrooms(window, mushroomTexture);
 
-
+        std::stringstream ss;
+        ss << "Score = " << score;
+        scoreText.setString(ss.str());
+        window.draw(scoreText);
 
         window.display();
     }
