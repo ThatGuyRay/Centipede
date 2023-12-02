@@ -470,11 +470,12 @@ void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int ce
         }
 
         if (gameGrid[currentx][currenty] == 2 || gameGrid[currentx][currenty] == 1) {
+            gameGrid[currentx][currenty] = 0;
             currentx = centipede[currentcentipede][0][x]; // keep the original x
             xdirection = !xdirection; // just switch x direction
             // move up or down in y
             currenty = ydirection ? (currenty + 1) : (currenty - 1);
-            gameGrid[currentx][currenty] = 0;
+            
         }
 
         centipede[currentcentipede][0][x] = currentx;
