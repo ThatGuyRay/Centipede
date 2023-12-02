@@ -468,14 +468,7 @@ void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int ce
                 ydirection = true;
             }
         }
-
-        // if(gameGrid[currentx][currenty] != 0)
-        // {
-        //     currentx = direction ? currentx + 1 : currentx - 1;
-        //     currenty = calulcateCentipedeHeadY(currenty, isLeft[currentcentipede], isBottom[currentcentipede]);
-        //     direction = !direction;
-        // }
-
+        
         centipede[currentcentipede][0][x] = currentx;
         centipede[currentcentipede][0][y] = currenty;
         isLeft[currentcentipede] = xdirection;
