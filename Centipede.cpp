@@ -47,6 +47,7 @@ void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]);
 
 void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2]);
 bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberofCentipede, float player[]);
+void generateCentupede(bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2], int numberofCentipedes);
 
 int main()
 {
@@ -73,43 +74,8 @@ int main()
     // int centipedeheadPositionY[maxCentipedeSize] = {};
     int centipedearray[maxnumber_centipede][maxCentipedeSize][2] = {};
 
-    //Head
-    centipedearray[0][0][x] = 5;
-    centipedearray[0][0][y] = 4;
-    //Body-1
-    centipedearray[0][1][x] = 4;
-    centipedearray[0][1][y] = 4;
-    //Body-2
-    centipedearray[0][2][x] = 3;
-    centipedearray[0][2][y] = 4;
-    //Body-3
-    centipedearray[0][3][x] = 2;
-    centipedearray[0][3][y] = 4;
-    //Body-4
-    centipedearray[0][4][x] = 1;
-    centipedearray[0][4][y] = 4;
-    //Body-5
-    centipedearray[0][5][x] = 0;
-    centipedearray[0][5][y] = 4;
-    //Body-6
-    centipedearray[0][6][x] = 0;
-    centipedearray[0][6][y] = 3;
-    //Body-7
-    centipedearray[0][7][x] = 1;
-    centipedearray[0][7][y] = 3;
-    //Body-8
-    centipedearray[0][8][x] = 2;
-    centipedearray[0][8][y] = 3;
-    //Body-9
-    centipedearray[0][9][x] = 3;
-    centipedearray[0][9][y] = 3;
-    //Body-10
-    centipedearray[0][10][x] = 4;
-    centipedearray[0][10][y] = 3;
-    //Body-11
-    centipedearray[0][11][x] = 5;
-    centipedearray[0][11][y] = 3;
-    isLeft[0] = false;
+    generateCentupede(isLeft, isBottom, centipedearray, numberofCentipede);
+    isLeft[0] = true;
     isBottom[0] = true;
 
     numberofCentipede++;
@@ -546,4 +512,23 @@ bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberof
         }
     }
     return false; // No collision detected
+}
+
+void generateCentupede(bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2], int numberofCentipedes)
+{
+    for (int currentcentipede = 0; currentcentipede < numberofCentipedes; ++currentcentipede)
+    {            
+        // Generating the head of the centipede at a random position within screen bounds
+        centipede[currentcentipede][0][x] = rand() % (resolutionX);
+        centipede[currentcentipede][0][y] = rand() % (resolutionY - playerRows);
+
+        // Generating subsequent body segments based on the head position
+        for (int bodysegment = 1; bodysegment < maxCentipedeSize; ++bodysegment)
+        {
+
+            centipede[currentcentipede][bodysegment][x] = centipede[currentcentipede][bodysegment - 1][x];
+            centipede[currentcentipede][bodysegment][y] = centipede[currentcentipede][bodysegment - 1][y];
+            
+        }
+    }
 }
