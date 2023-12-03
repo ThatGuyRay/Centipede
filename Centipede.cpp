@@ -4,7 +4,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include <SFML/Audio.hpp> 
+#include <SFML/Audio.hpp>
 #include <sstream>
 using namespace std;
 
@@ -34,11 +34,11 @@ void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSpri
 void movePlayer(float player[]);
 void moveBullet(float bullet[]);
 void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite);
-void fireBullet(float bullet[], float player[], sf::Music& bulletShoot);
+void fireBullet(float bullet[], float player[]);
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture);
 void gridToPixel(int gridx, int gridy, int pixelarray[]);
 void generateMushrooms(int number_of_mushrooms);
-bool bulletCollision(float bullet[], int& score);
+bool bulletCollision(float bullet[], int &score, int centipedearray[][maxCentipedeSize][2], int &numberofCentipede);
 void pixelToGrid(float pixelarray[], int gridarray[]);
 // void generateCentipede(int len, bool isleft, int headposition[], int& numberofCentipede, 
 //     bool isLeft[], int centipedeLength[], int centipedeheadPositionX[], int centipedeheadPositionY[]);
@@ -48,11 +48,12 @@ void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]);
 
 void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2]);
 bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberofCentipede, float player[]);
-void generateCentupede(bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2], int numberofCentipedes);
+void generateCentipede(int centipedeLength, int headposition[], bool startingLeft, bool isLeft[], bool isBottom[],
+    int centipede[][maxCentipedeSize][2], int& numberofCentipedes);
 
 int main()
 {
-    srand(time(0));
+    srand(time(NULL));
 
     // Declaring RenderWindow.
 	sf::RenderWindow window(sf::VideoMode(resolutionX, resolutionY), "Centipede", sf::Style::Close | sf::Style::Titlebar);
@@ -67,33 +68,38 @@ int main()
 
     //Set up Centipedes.
     int numberofCentipede = 0;
-    int maxnumber_centipede = 12;
-    // int centipedeLength[maxCentipedeSize] = {};
-    bool isLeft[maxCentipedeSize] = {};
+    int maxnumber_centipede = 12;    bool isLeft[maxCentipedeSize] = {};
     bool isBottom[maxCentipedeSize] = {};
-    // int centipedeheadPositionX[maxCentipedeSize] = {};
-    // int centipedeheadPositionY[maxCentipedeSize] = {};
     int centipedearray[maxnumber_centipede][maxCentipedeSize][2] = {};
 
-    generateCentupede(isLeft, isBottom, centipedearray, numberofCentipede);
-    isLeft[0] = true;
-    isBottom[0] = true;
-
-    numberofCentipede++;
-
-    // int starting_position[2] = {5, 4};
-    // generateCentipede(12, true, starting_position, numberofCentipede, isLeft, centipedeLength, centipedeheadPositionX, centipedeheadPositionY);
-
+    //initialize centipede at a random row and between col 1 to 6
+    int startingPosition[2] = {(rand() % gameRows), 1 + (rand() % 6)};
+    int startingLeft = rand() % 2;
+    generateCentipede(maxCentipedeSize, startingPosition, startingLeft, isLeft, isBottom, centipedearray, numberofCentipede);
 
     // Todo: Add Music.
 	sf::Music bgMusic;
 	bgMusic.openFromFile("Music/field_of_hopes.ogg");
 	bgMusic.play();
 	bgMusic.setVolume(50);
-    
-    sf::Music bulletShoot;
-	bulletShoot.openFromFile("Sound_Effects/fire1.wav");
 
+    sf::SoundBuffer playerdeathbuffer;
+    sf::Sound playerdeathsound;
+    playerdeathbuffer.loadFromFile("Sound_Effects/death.wav");
+    playerdeathsound.setBuffer(playerdeathbuffer);
+    playerdeathsound.setVolume(50);
+
+    sf::SoundBuffer mushroomkillbuffer;
+    sf::Sound mushroomkillsound;
+    mushroomkillbuffer.loadFromFile("Sound_Effects/kill.wav");
+    mushroomkillsound.setBuffer(mushroomkillbuffer);
+    mushroomkillsound.setVolume(50);
+
+    sf::SoundBuffer bulletBuffer;
+    sf::Sound bulletSound;
+    bulletBuffer.loadFromFile("Sound_Effects/fire1.wav");
+    bulletSound.setBuffer(bulletBuffer);
+    bulletSound.setVolume(50);
 
     // Background
     sf::Texture backgroundTexture;
@@ -191,6 +197,7 @@ int main()
     int score = 0;
     int centipederate = 0;
     bool gameOver;
+    bool bulletfired = false;
 
     sf::Clock frameRateClock;
 
@@ -222,17 +229,30 @@ int main()
         movePlayer(player);
         drawPlayer(window, player, playerSprite);
 
-        fireBullet(bullet, player, bulletShoot);
+        fireBullet(bullet, player);
 
+        //Bullet creation and collision
         if (bullet[exists] == true) 
         {
+            if(!bulletfired)
+            {
+                bulletSound.play();
+                bulletfired = true;
+            }
 			moveBullet(bullet);
 			drawBullet(window, bullet, bulletSprite);
-            if(bulletCollision(bullet, score))
+            if(bulletCollision(bullet, score, centipedearray, numberofCentipede))
             {
+                mushroomkillsound.play();
                 bullet[exists] = false;
             }
         }
+
+        if(!bullet[exists])
+        {
+            bulletfired = false;
+        }
+        //Movement of Centipede and game over text
         if(centipederate == 10)
         {
             moveCentipede(numberofCentipede, isLeft, isBottom, centipedearray);
@@ -241,6 +261,7 @@ int main()
                 window.draw(rectangle);
                 window.draw(gameoverText);
                 gameOver = true;
+                playerdeathsound.play();
             }
             centipederate = 0;
         }
@@ -262,11 +283,14 @@ int main()
     return 0;
 }
 
+
+//Draws the player
 void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSprite) {
 	playerSprite.setPosition(player[x], player[y]);
 	window.draw(playerSprite);
 }
 
+//Moves the player within bounds
 void movePlayer(float player[])
 {
     float speed = 10;
@@ -288,11 +312,13 @@ void movePlayer(float player[])
     }
 }
 
+//Draws the Bullet
 void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite) {
 	bulletSprite.setPosition(bullet[x], bullet[y]);
 	window.draw(bulletSprite);
 }
 
+//Moves the Bullet
 void moveBullet(float bullet[])
 {
     bullet[y] -= 20;	
@@ -302,7 +328,8 @@ void moveBullet(float bullet[])
     }
 }
 
-void fireBullet(float bullet[], float player[], sf::Music& bulletShoot)
+//Fires the Bullet
+void fireBullet(float bullet[], float player[])
 {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet[exists])
     {
@@ -311,16 +338,10 @@ void fireBullet(float bullet[], float player[], sf::Music& bulletShoot)
         bullet[x] = player[x];
         bullet[y] = player[y] - boxPixelsY;
         bullet[exists] = true;
-        // Stop the sound if it's currently playing
-        if (bulletShoot.getStatus() == sf::Sound::Playing)
-            bulletShoot.stop();
-
-        // Set the volume and play the bullet shoot sound effect
-        bulletShoot.setVolume(50);
-        bulletShoot.play();
     }
 }
 
+//Draws the Mushrooms
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture)
 {
     for(int i = 0; i < gameRows; i++)
@@ -348,12 +369,14 @@ void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture)
     }
 }
 
+//Function that turns the grid value to the Position value
 void gridToPixel(int gridx, int gridy, int pixelarray[])
 {
     pixelarray[0] = gridx * 32;
     pixelarray[1] = gridy * 32;
 }
 
+//Generates random mushrooms
 void generateMushrooms(int number_of_mushrooms)
 {
     int current_total = 0;
@@ -370,33 +393,88 @@ void generateMushrooms(int number_of_mushrooms)
 
 }
 
-bool bulletCollision(float bullet[], int& score)
+//For Bullet Collision and Incrementing the Score
+bool bulletCollision(float bullet[], int &score, int centipedearray[][maxCentipedeSize][2], int &numberofCentipede)
 {
     int gridarray[2];
     int hitcounter = 0;
     pixelToGrid(bullet, gridarray);
-    if(gameGrid[gridarray[0]][gridarray[1]] == 2 || gameGrid[gridarray[0]][gridarray[1]] == 1)
+
+
+    // detect centipede collision
+    for (int currentcentipede = 0; currentcentipede < numberofCentipede; ++currentcentipede)
+    {
+        if (gridarray[0] == centipedearray[currentcentipede][0][0] && gridarray[1] == centipedearray[currentcentipede][0][1])
+        {
+            cout << "Hit the head" << endl;
+
+            for (int k = currentcentipede; k < numberofCentipede; k++)
+            {
+                for (int i = 0; i < maxCentipedeSize - 1; ++i)
+                {
+                    for (int j = 0; j < maxCentipedeSize; ++j)
+                    {
+                        centipedearray[k][i][0] = centipedearray[k + 1][i + 1][0];
+                        centipedearray[k][i][1] = centipedearray[k + 1][i + 1][1];
+                    }
+                }
+            }
+            return true;
+        }
+        for (int bodysegment = 0; bodysegment < maxCentipedeSize; bodysegment++)
+        {
+
+            if (gridarray[0] == centipedearray[currentcentipede][bodysegment][0] && gridarray[1] == centipedearray[currentcentipede][bodysegment][1])
+            {
+
+                // Calculate the length of the remaining segment
+                int newCentipedeLenght = maxCentipedeSize - (bodysegment + 1);
+
+                cout << "Created new Centipede with length " << newCentipedeLenght << endl;
+
+                for (int newCentipedeSegments = 0; newCentipedeSegments < newCentipedeLenght; newCentipedeSegments++)
+                {
+                    // Change spawn point of the splitted centipede.
+                    centipedearray[currentcentipede + 1][newCentipedeSegments][0] = centipedearray[currentcentipede][bodysegment + newCentipedeSegments][0] - 1;
+                    centipedearray[currentcentipede + 1][newCentipedeSegments][1] = centipedearray[currentcentipede][bodysegment + newCentipedeSegments][1];
+
+                    // Set segments of new centipede as inactive in the old centipede
+                    centipedearray[currentcentipede][bodysegment + newCentipedeSegments][0] = -1;
+                    centipedearray[currentcentipede][bodysegment + newCentipedeSegments][1] = -1;
+                }
+
+                numberofCentipede++;
+                cout << "Hit centipede at " << gridarray[0] << " " << gridarray[1] << " " << numberofCentipede << endl;
+                return true;
+            }
+        }
+    }
+
+    if (gameGrid[gridarray[0]][gridarray[1]] == 2 || gameGrid[gridarray[0]][gridarray[1]] == 1)
     {
         gameGrid[gridarray[0]][gridarray[1]]--;
-        if(gameGrid[gridarray[0]][gridarray[1]] == 0)
+        if (gameGrid[gridarray[0]][gridarray[1]] == 0)
         {
             score++;
             cout << "Score: " << score << endl;
         }
         return true;
     }
+
     else
     {
         return false;
     }
 }
 
+//Converts the pixels to a grid value
 void pixelToGrid(float pixelarray[], int gridarray[])
 {
     gridarray[0] = pixelarray[0] / 31;
     gridarray[1] = pixelarray[1] / 32;
 }
 
+//Draws the Centipede 
 void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, sf::Texture& centipedebodyTexture, 
     int maxnumber_centipede, int numberofcentipedes, int centipede[][maxCentipedeSize][2])
 {
@@ -430,6 +508,8 @@ void drawCentipede(sf::RenderWindow& window, sf::Texture& centipedeheadTexture, 
     }
 }
 
+
+//Putting the Centipede in the Grid
 void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]) {
     // Delete all old centipede segments from the game grid
     for (int cI = 0; cI < numberofCentipede; cI++) {
@@ -454,7 +534,7 @@ void UpdateGrid(int numberofCentipede, int centipede[][maxCentipedeSize][2]) {
     }
 }
 
-
+//Moving the Centipede
 void moveCentipede(int numberofCentipede, bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2])
 {
     for(int currentcentipede = 0; currentcentipede < numberofCentipede; currentcentipede++)
@@ -530,21 +610,47 @@ bool playerCentipedeCollision(int centipede[][maxCentipedeSize][2], int numberof
     return false; // No collision detected
 }
 
-void generateCentupede(bool isLeft[], bool isBottom[], int centipede[][maxCentipedeSize][2], int numberofCentipedes)
+void generateCentipede(int centipedeLength, int headposition[], bool startingLeft, bool isLeft[], bool isBottom[],
+    int centipede[][maxCentipedeSize][2], int& numberofCentipedes)
 {
-    for (int currentcentipede = 0; currentcentipede < numberofCentipedes; ++currentcentipede)
-    {            
-        // Generating the head of the centipede at a random position within screen bounds
-        centipede[currentcentipede][0][x] = rand() % (resolutionX);
-        centipede[currentcentipede][0][y] = rand() % (resolutionY - playerRows);
+    int centipedeIndex = numberofCentipedes;
+    // Generating the head of the centipede
+    centipede[centipedeIndex][0][x] = headposition[x];
+    centipede[centipedeIndex][0][y] = headposition[y];
 
-        // Generating subsequent body segments based on the head position
-        for (int bodysegment = 1; bodysegment < maxCentipedeSize; ++bodysegment)
-        {
+    // Generate body
+    int currentX = headposition[x];
+    int currentY = headposition[y];
+    bool direction = startingLeft;
+    for(int bodyIndex = 1; bodyIndex < maxCentipedeSize; bodyIndex++) {
+        // centipede[centipedeIndex][bodyIndex][x] = currentX ? 
+        
+        if (bodyIndex < centipedeLength) {
+            // increment X based on direction
+            currentX += direction ? 1 : -1;
+            // if X is out of screen update it and move Y up and switch direction
+            if (currentX < 0) {
+                currentX = 0;
+                currentY--;
+               direction = true;
+            } else if (currentX > gameColumns - 1) {
+                currentX = gameColumns - 1;
+                currentY--;
+                direction = false;
+            }
+            // assign X and Y
+            centipede[centipedeIndex][bodyIndex][x] = currentX;
+            centipede[centipedeIndex][bodyIndex][y] = currentY;
+        } else {
+            // mark body as complete by setting x, y = -1, -1 and break
+            centipede[centipedeIndex][bodyIndex][x] = -1;
+            centipede[centipedeIndex][bodyIndex][y] = -1;
+            break;
+         }
+     }
 
-            centipede[currentcentipede][bodysegment][x] = centipede[currentcentipede][bodysegment - 1][x];
-            centipede[currentcentipede][bodysegment][y] = centipede[currentcentipede][bodysegment - 1][y];
-            
-        }
-    }
-}
+    // set up other properties 
+    isLeft[centipedeIndex] = startingLeft;
+    isBottom[centipedeIndex] = true;
+    numberofCentipedes++;
+ }
