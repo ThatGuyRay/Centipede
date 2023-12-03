@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <SFML/Audio.hpp> 
 #include <sstream>
 using namespace std;
 
@@ -33,7 +34,7 @@ void drawPlayer(sf::RenderWindow& window, float player[], sf::Sprite& playerSpri
 void movePlayer(float player[]);
 void moveBullet(float bullet[]);
 void drawBullet(sf::RenderWindow& window, float bullet[], sf::Sprite& bulletSprite);
-void fireBullet(float bullet[], float player[]);
+void fireBullet(float bullet[], float player[], sf::Music& bulletShoot);
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture);
 void gridToPixel(int gridx, int gridy, int pixelarray[]);
 void generateMushrooms(int number_of_mushrooms);
@@ -85,7 +86,13 @@ int main()
 
 
     // Todo: Add Music.
-
+	sf::Music bgMusic;
+	bgMusic.openFromFile("Music/field_of_hopes.ogg");
+	bgMusic.play();
+	bgMusic.setVolume(50);
+    
+    sf::Music bulletShoot;
+	bulletShoot.openFromFile("Sound_Effects/fire1.wav");
 
 
     // Background
@@ -215,7 +222,7 @@ int main()
         movePlayer(player);
         drawPlayer(window, player, playerSprite);
 
-        fireBullet(bullet, player);
+        fireBullet(bullet, player, bulletShoot);
 
         if (bullet[exists] == true) 
         {
@@ -295,14 +302,23 @@ void moveBullet(float bullet[])
     }
 }
 
-void fireBullet(float bullet[], float player[])
+void fireBullet(float bullet[], float player[], sf::Music& bulletShoot)
 {
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet[exists])
-        {
-            bullet[x] = player[x];
-            bullet[y] = player[y] - boxPixelsY;
-            bullet[exists] = true;
-        }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && !bullet[exists])
+    {
+
+        
+        bullet[x] = player[x];
+        bullet[y] = player[y] - boxPixelsY;
+        bullet[exists] = true;
+        // Stop the sound if it's currently playing
+        if (bulletShoot.getStatus() == sf::Sound::Playing)
+            bulletShoot.stop();
+
+        // Set the volume and play the bullet shoot sound effect
+        bulletShoot.setVolume(50);
+        bulletShoot.play();
+    }
 }
 
 void drawMushrooms(sf::RenderWindow& window, sf::Texture& mushroomTexture)
